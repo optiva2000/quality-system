@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optiva — Optimize Value</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1A1A1A;--gold:#C5A059;--bg:#FAFAFA;--line:#E6E1D6;--muted:#777}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Cairo,Montserrat,sans-serif;line-height:1.6}
+header{background:var(--ink);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:4px solid var(--gold)}
+header img{height:40px;width:auto}
+.mark{font:800 1.1rem Montserrat,sans-serif;color:var(--gold);letter-spacing:.08em;line-height:1}
+.tag{font:500 .72rem Montserrat,sans-serif;color:#ccc}
+#who{margin-inline-start:auto;display:flex;align-items:center;gap:10px;font-size:.85rem;flex-wrap:wrap}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+.g{display:grid;gap:12px;margin-bottom:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.r>.in{flex:1;min-width:130px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
+.mb{margin-bottom:12px}.muted{color:var(--muted);font-size:.8rem}.ok{color:#1d7a3e;font-size:.8rem}.bad{color:#b3261e;font-size:.8rem}
+h2{font-size:1.15rem;margin:0 0 12px}h3{font-size:1rem;margin:0 0 8px}
+.num{font:800 2rem Montserrat,sans-serif}
+.in{display:block;width:100%;border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 10px;font:inherit;margin-bottom:8px}
+.btn{background:var(--ink);color:#fff;border:0;padding:8px 16px;border-radius:6px;font:600 .9rem Cairo,sans-serif;cursor:pointer}
+.btn:hover{background:#000}.btn.gold{background:var(--gold);color:var(--ink)}.btn.gold:hover{background:#b48b45}.btn.sm{padding:4px 10px;font-size:.8rem}.btn.full{width:100%}
+.btn:focus-visible,.in:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.chip{display:inline-block;font-size:.75rem;padding:1px 9px;border-radius:99px;border:1px solid var(--line);margin:0 0 4px 4px}
+.tabs{display:flex;margin-bottom:14px;border-bottom:2px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:8px;font:600 .95rem Cairo,sans-serif;cursor:pointer;color:var(--muted)}
+.tabs button.on{color:var(--ink);border-bottom:3px solid var(--gold);margin-bottom:-2px}
+.row{border-bottom:1px solid var(--line);padding:8px 0;font-size:.88rem}.row:last-child{border:0}
+.fab-bot{position:fixed;bottom:16px;right:16px;width:64px;height:64px;border-radius:50%;border:4px solid var(--gold);background:#fff;padding:0;overflow:hidden;cursor:pointer;box-shadow:0 4px 14px #0003;z-index:40}
+.fab-bot img{width:100%;height:100%;object-fit:cover}
+.fab-sup{position:fixed;bottom:16px;left:16px;z-index:40;box-shadow:0 4px 14px #0003}
+.pop{position:fixed;width:min(22rem,92vw);box-shadow:0 8px 28px #0003;z-index:40}
+.pop.bot{bottom:92px;right:16px}.pop.sup{bottom:70px;left:16px}
+.hide{display:none!important}
+#botlog{height:16rem;overflow-y:auto;font-size:.88rem;margin-bottom:8px;display:flex;flex-direction:column;gap:6px}
+.m{padding:7px 10px;border-radius:8px;white-space:pre-wrap}.m.me{background:var(--ink);color:#fff}.m.ai{background:var(--bg);border:1px solid var(--line)}
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 18px;border-radius:6px;z-index:60}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <img id="logo" alt="Optiva" src="https://drive.google.com/thumbnail?id=195Edfxkk2neFZwRUl8w40AfX_OEXBj4L&sz=w400">
+  <div><div class="mark">OPTIVA</div><div class="tag">Optimize Value</div></div>
+  <div id="who"></div>
+</header>
+<main id="app" class="wrap"></main>
+<div id="floats"></div>
+<div id="toast" class="hide" role="status"></div>
+
+<script>
+/* ===== الإعداد: ضع رابط Web App (ينتهي بـ /exec) ===== */
+const API_URL='PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+const AVATAR='https://drive.google.com/thumbnail?id=1z2QazFPcoo4Taay8uhWt5dHK9WNxWQ9a&sz=w200';
+const ROLES={owner:'مالك المنصة',gm:'مدير عام البراند',quality:'فريق الجودة',branch:'مسؤول الفرع'};
+let S={token:null,user:null,d:null,pub:{brands:[],branches:[]},tab:'in'};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const val=id=>($(id)||{}).value||'';
+const fdate=t=>{try{return new Date(t).toLocaleString('ar-EG')}catch(e){return ''}};
+const safeColor=c=>/^#[0-9A-Fa-f]{6}$/.test(c)?c:'#C5A059';
+const safeUrl=u=>/^https:\/\//.test(u||'')?esc(u):'';
+function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hide');clearTimeout(S.tt);S.tt=setTimeout(()=>t.classList.add('hide'),3500)}
+
+/* ---------- API (fetch → Apps Script، text/plain لتفادي CORS preflight) ---------- */
+async function call(action,p){
+  if(API_URL.indexOf('PASTE_')===0)throw new Error('ضع رابط Web App في API_URL داخل index.html');
+  let r;try{r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:S.token,action:action,p:p||{}})})}
+  catch(e){throw new Error('تعذر الاتصال بالخادم')}
+  const j=await r.json();if(j.error)throw new Error(j.error);return j;
+}
+async function act(action,p,ok){try{const r=await call(action,p);if(ok)toast(ok);await refresh(true);return r}catch(e){toast(e.message);if(/الجلسة|إيقاف/.test(e.message))logout()}}
+
+/* ---------- Login / Sign up ---------- */
+async function showLogin(msg){
+  $('who').innerHTML='';$('floats').innerHTML='';
+  try{S.pub=await call('publicInfo')}catch(e){toast(e.message)}
+  const si=S.tab==='in';
+  $('app').innerHTML=`<div class="card" style="max-width:440px;margin:24px auto">
+    <div class="tabs"><button class="${si?'on':''}" onclick="S.tab='in';showLogin()">تسجيل الدخول</button><button class="${si?'':'on'}" onclick="S.tab='up';showLogin()">حساب جديد (مدير براند)</button></div>
+    ${msg?`<p class="ok">${esc(msg)}</p>`:''}
+    ${si?`<label>اسم المستخدم</label><input id="lu" class="in" autocomplete="username">
+      <label>كلمة المرور</label><input id="lp" type="password" class="in" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="btn gold full" onclick="doLogin()">دخول</button><p class="muted">يتعرف النظام على نوع حسابك تلقائياً.</p>`
+    :`<p class="muted">التسجيل هنا لمديري البراندات فقط. حسابات فريق الجودة ومسؤولي الفروع ينشئها المدير العام من لوحته.</p>
+      <label>اسم البراند</label><input id="sn" class="in">
+      <label>اسم المستخدم (حساب المدير العام)</label><input id="su" class="in" autocomplete="username" placeholder="حروف إنجليزية وأرقام">
+      <label>كلمة المرور</label><input id="sp" type="password" class="in" autocomplete="new-password" placeholder="6 أحرف على الأقل">
+      <button class="btn gold full" onclick="doSignup()">إنشاء حساب البراند</button>`}
+  </div>`;
+}
+async function doSignup(){
+  try{const r=await call('signup',{type:'brand',name:val('sn').trim(),username:val('su').trim(),password:val('sp')});
+    S.tab='in';showLogin(r.msg)}catch(e){toast(e.message)}
+}
+async function doLogin(){
+  try{const r=await call('login',{username:val('lu').trim(),password:val('lp')});
+    S.token=r.token;S.user=r.user;sessionStorage.setItem('optiva',JSON.stringify(r));await refresh(true);startLoops()}catch(e){toast(e.message)}
+}
+function logout(){S.token=null;S.user=null;sessionStorage.removeItem('optiva');clearInterval(S.t1);clearInterval(S.t2);$('logo').src=LOGO0;showLogin()}
+function startLoops(){clearInterval(S.t1);clearInterval(S.t2);
+  S.t1=setInterval(()=>refresh(false),10000);                 // تحديث تلقائي كل 10 ثواني
+  S.t2=setInterval(()=>call('ping').catch(()=>{}),60000)}     // عداد ساعات الاستخدام
+const LOGO0=$('logo').src;
+
+/* ---------- Dashboard data & render ---------- */
+async function refresh(force){
+  if(!S.token)return;
+  const a=document.activeElement;
+  if(!force&&a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;
+  try{S.d=await call('dashboard')}catch(e){toast(e.message);if(/الجلسة|إيقاف/.test(e.message))logout();return}
+  render();
+}
+function render(){
+  const u=S.user,d=S.d,br=d.brands[0];
+  $('who').innerHTML=`<span>${ROLES[u.role]} · ${esc(u.username)}</span>${br&&u.role!=='owner'?`<span class="chip" style="border-color:${safeColor(br.color)};color:${safeColor(br.color)}">${esc(br.name)}</span>`:''}<button class="btn gold sm" onclick="logout()">خروج</button>`;
+  if(br&&u.role!=='owner'&&safeUrl(br.logo))$('logo').src=br.logo;
+  $('app').innerHTML=({owner:ownerView,gm:gmView,quality:qualityView,branch:branchView})[u.role]();
+  if(!$('floats').innerHTML)floatsInit();
+}
+const brandName=id=>(S.d.brands.find(b=>b.id===id)||{}).name||'—';
+const branchName=id=>(S.d.branches.find(b=>b.id===id)||{}).name||'';
+const branchesOf=id=>S.d.branches.filter(b=>b.brandId===id);
+const branchChips=b=>{const l=branchesOf(b.id);return l.length?l.map(x=>`<span class="chip">${esc(x.name)}</span>`).join(''):'<span class="muted">لا توجد فروع</span>'};
+function supportList(){const s=S.d.support||[];return `<div class="card mb"><h3>رسائل الدعم والشكاوى الميدانية</h3>${s.length?s.map(m=>`<div class="row"><div class="muted">${fdate(m.ts)} · ${esc(brandName(m.brandId))} · ${esc(m.from)}</div>${esc(m.text)}</div>`).join(''):'<p class="muted">لا توجد رسائل بعد.</p>'}</div>`}
+function msgBox(){const m=S.d.messages||[];return `<div class="card mb"><h3>رسائل إدارة المنصة</h3>${m.length?m.map(x=>`<div class="row"><div class="muted">${fdate(x.ts)}</div>${esc(x.text)}</div>`).join(''):'<p class="muted">لا توجد رسائل.</p>'}</div>`}
+
+/* Platform Owner */
+function ownerView(){
+  const d=S.d;
+  return `<h2>لوحة تحكم مالك المنصة</h2>
+  <div class="g g3"><div class="card"><div class="muted">البراندات</div><div class="num">${d.brands.length}</div></div>
+    <div class="card"><div class="muted">الفروع</div><div class="num">${d.branches.length}</div></div>
+    <div class="card"><div class="muted">إجمالي ساعات الاستخدام</div><div class="num">${d.brands.reduce((a,b)=>a+b.hours,0).toFixed(1)}</div></div></div>
+  <div class="g g2">${d.brands.map(b=>`
+    <div class="card" style="border-top:4px solid ${safeColor(b.color)}">
+      <div class="r mb">${safeUrl(b.logo)?`<img src="${safeUrl(b.logo)}" alt="" style="height:40px;width:40px;object-fit:contain">`:''}
+        <div style="flex:1"><b>${esc(b.name)}</b><div class="muted">GM: ${esc(b.gmUser)} · الاستخدام: ${b.hours} ساعة</div></div>
+        <button class="btn sm ${b.gmActive?'':'gold'}" onclick="act('toggleGM',{brandId:'${esc(b.id)}'},'تم تحديث حالة الـ GM')">${b.gmActive?'إيقاف الـ GM':'تفعيل الـ GM'}</button></div>
+      <div class="${b.gmActive?'ok':'bad'} mb">${b.gmActive?'البراند يعمل بكل أفرعه':'البراند متوقف بكل أفرعه وأكونتاته'}</div>
+      <div class="mb">${branchChips(b)}</div>
+      <details class="mb"><summary style="cursor:pointer;font-weight:600">الهوية البصرية واللوجو</summary>
+        <input id="lg_${esc(b.id)}" class="in" style="margin-top:8px" placeholder="رابط اللوجو (https)" value="${esc(b.logo)}">
+        <div class="r"><input id="cl_${esc(b.id)}" type="color" value="${safeColor(b.color)}" style="height:36px;width:60px"><button class="btn sm" onclick="act('setIdentity',{brandId:'${esc(b.id)}',logo:val('lg_${esc(b.id)}'),color:val('cl_${esc(b.id)}')},'تم حفظ الهوية')">حفظ</button></div></details>
+      <div class="r"><input id="ms_${esc(b.id)}" class="in" style="margin:0" placeholder="رسالة مباشرة لـ GM ${esc(b.name)}"><button class="btn sm" onclick="act('sendMessage',{brandId:'${esc(b.id)}',text:val('ms_${esc(b.id)}')},'تم الإرسال')">إرسال</button></div>
+    </div>`).join('')||'<p class="muted">لا توجد براندات بعد — أضف أول براند.</p>'}</div>
+  <div class="g g2">
+    <div class="card"><h3>Add More — براند جديد</h3><input id="nb_name" class="in" placeholder="اسم البراند"><input id="nb_logo" class="in" placeholder="رابط اللوجو (اختياري)">
+      <div class="r"><input id="nb_gu" class="in" placeholder="مستخدم الـ GM"><input id="nb_gp" type="password" class="in" placeholder="كلمة المرور"></div>
+      <button class="btn gold" onclick="act('addBrand',{name:val('nb_name'),logo:val('nb_logo'),gmUser:val('nb_gu'),gmPass:val('nb_gp')},'تمت إضافة البراند')">إضافة براند</button></div>
+    <div class="card"><h3>Add More — فرع جديد</h3><select id="nf_b" class="in">${d.brands.map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('')}</select>
+      <input id="nf_name" class="in" placeholder="اسم الفرع"><div class="r"><input id="nf_u" class="in" placeholder="مستخدم مسؤول الفرع (اختياري)"><input id="nf_p" type="password" class="in" placeholder="كلمة المرور"></div>
+      <button class="btn gold" onclick="act('addBranch',{brandId:val('nf_b'),name:val('nf_name'),repUser:val('nf_u'),repPass:val('nf_p')},'تمت إضافة الفرع')">إضافة فرع</button></div>
+  </div>${supportList()}`;
+}
+
+/* Brand GM */
+function gmView(){
+  const b=S.d.brands[0];
+  return `<h2>لوحة مدير عام ${esc(b.name)}</h2>
+  <div class="card mb"><h3>الفروع</h3><div class="mb">${branchChips(b)}</div>
+    <input id="nf_name" class="in" placeholder="اسم الفرع"><div class="r"><input id="nf_u" class="in" placeholder="مستخدم مسؤول الفرع (اختياري)"><input id="nf_p" type="password" class="in" placeholder="كلمة المرور"></div>
+    <button class="btn gold" onclick="act('addBranch',{name:val('nf_name'),repUser:val('nf_u'),repPass:val('nf_p')},'تمت إضافة الفرع')">Add More — فرع</button></div>
+  <div class="card mb"><h3>إضافة عضو فريق جودة</h3><div class="r"><input id="q_u" class="in" placeholder="اسم المستخدم"><input id="q_p" type="password" class="in" placeholder="كلمة المرور"></div>
+    <button class="btn gold" onclick="act('addQuality',{username:val('q_u'),pass:val('q_p')},'تمت إضافة العضو')">إضافة</button></div>
+  ${teamBox()}${msgBox()}${supportList()}`;
+}
+function teamBox(){const t=S.d.team||[];return `<div class="card mb"><h3>الحسابات التي أنشأتها</h3>${t.length?t.map(x=>`<div class="row">${esc(x.username)} — ${ROLES[x.role]}${x.branch?' / '+esc(x.branch):''}</div>`).join(''):'<p class="muted">لا توجد حسابات بعد.</p>'}</div>`}
+function qualityView(){const b=S.d.brands[0];return `<h2>فريق الجودة — ${esc(b.name)}</h2><div class="card mb"><h3>الفروع</h3>${branchChips(b)}</div>${msgBox()}${supportList()}`}
+function branchView(){const b=S.d.brands[0],br=S.d.branches[0]||{};return `<h2>مسؤول الفرع — ${esc(b.name)} / ${esc(br.name)}</h2>${msgBox()}<div class="card"><p>للإبلاغ عن شكوى أو حالة طارئة استخدم زر <b>تواصل مع الإدارة</b>، وللاستفسار عن اشتراطات السلامة استخدم <b>المساعد الذكي</b>.</p></div>`}
+
+/* ---------- Floating widgets ---------- */
+function floatsInit(){
+  $('floats').innerHTML=`
+  <button class="fab-bot" aria-label="المساعد الذكي" onclick="tgl('bot')"><img src="${AVATAR}" alt=""></button>
+  <button class="btn gold fab-sup" onclick="tgl('sup')">تواصل مع الإدارة</button>
+  <section id="bot" class="card pop bot hide"><div class="r mb"><img src="${AVATAR}" alt="" style="width:32px;height:32px;border-radius:50%"><b>مساعد سلامة الغذاء (NFSA)</b></div>
+    <div id="botlog"><div class="m ai">اسألني عن اشتراطات سلامة الغذاء في مصر، وسأذكر المصدر القانوني في نهاية كل رد.</div></div>
+    <div class="r"><input id="botin" class="in" style="margin:0" placeholder="اكتب سؤالك" onkeydown="if(event.key==='Enter')askBot()"><button class="btn" onclick="askBot()">إرسال</button></div></section>
+  <section id="sup" class="card pop sup hide"><b>شات الدعم المباشر</b><p class="muted">للشكاوى والحالات الطارئة — تصل للإدارة لحظياً.</p>
+    <textarea id="supin" rows="4" class="in" placeholder="اكتب رسالتك"></textarea><button class="btn gold full" onclick="sendSup()">إرسال للإدارة</button></section>`;
+}
+const tgl=id=>$(id).classList.toggle('hide');
+async function sendSup(){const t=val('supin').trim();if(!t)return;await act('sendSupport',{text:t},'وصلت رسالتك للإدارة');$('supin').value=''}
+async function askBot(){
+  const t=val('botin').trim();if(!t)return;$('botin').value='';
+  const L=$('botlog'),q=document.createElement('div'),w=document.createElement('div');
+  q.className='m me';q.textContent=t;w.className='m ai';w.textContent='...';L.append(q,w);L.scrollTop=L.scrollHeight;
+  try{w.textContent=(await call('chat',{text:t})).reply}catch(e){w.textContent='تعذر الرد: '+e.message}
+  L.scrollTop=L.scrollHeight;
+}
+
+/* ---------- Boot ---------- */
+(async function(){
+  try{const r=JSON.parse(sessionStorage.getItem('optiva')||'null');if(r&&r.token){S.token=r.token;S.user=r.user;await refresh(true);if(S.d){startLoops();return}}}catch(e){}
+  S.token=null;showLogin();
+})();
+</script>
+</body>
+</html>
