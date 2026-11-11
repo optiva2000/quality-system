@@ -68,10 +68,25 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hide');
 
 /* ---------- API (fetch → Apps Script، text/plain لتفادي CORS preflight) ---------- */
 async function call(action,p){
-  if(API_URL.indexOf('PASTE_')===0)throw new Error('ضع رابط Web App في API_URL داخل index.html');
-  let r;try{r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:S.token,action:action,p:p||{}})})}
-  catch(e){throw new Error('تعذر الاتصال بالخادم')}
-  const j=await r.json();if(j.error)throw new Error(j.error);return j;
+  if(!API_URL || API_URL.indexOf('PASTE_')===0)throw new Error('ضع رابط Web App في API_URL داخل index.html');
+  let r;
+  try{
+    r=await fetch(API_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({token:S.token,action:action,p:p||{}})
+    });
+  }catch(e){
+    throw new Error('تعذر الاتصال بالخادم. تحقق من الإنترنت ورابط Web App.');
+  }
+  const raw=await r.text();
+  let j;
+  try{j=JSON.parse(raw)}catch(e){
+    throw new Error('استجابة الخادم غير مفهومة. تأكد أن رابط API_URL صحيح وأن Web App منشور بإتاحة الوصول المناسبة.');
+  }
+  if(!r.ok)throw new Error('خطأ من الخادم (HTTP '+r.status+')');
+  if(j.error)throw new Error(j.error);
+  return j;
 }
 async function act(action,p,ok){try{const r=await call(action,p);if(ok)toast(ok);await refresh(true);return r}catch(e){toast(e.message);if(/الجلسة|إيقاف/.test(e.message))logout()}}
 
@@ -97,7 +112,7 @@ async function showLogin(msg){
       
       <div style="margin: 10px 0; display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="rememberMe" ${savedUser ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: var(--gold);">
-        <label for="rememberMe" style="font-size: 0.85rem; cursor: pointer; margin:0;">تذكرني (Keep me logged in)</label>
+        <label for="rememberMe" style="font-size: 0.85rem; cursor: pointer; margin:0;">تذكر اسم المستخدم</label>
       </div>
 
       <button class="btn gold full" onclick="doLogin()">دخول</button><p class="muted" style="margin-top:8px;">يتعرف النظام على نوع حسابك تلقائياً.</p>`
@@ -138,6 +153,24 @@ async function doLogin(){
     await refresh(true); 
     startLoops();
   }catch(e){toast(e.message)}
+}
+
+// إنشاء حساب براند جديد (متوافق مع signup_ في Code.gs)
+async function doSignup(){
+  const name=val('sn').trim();
+  const username=val('su').trim();
+  const password=val('sp');
+  if(!name || !username || !password){
+    toast('اكتب اسم البراند واسم المستخدم وكلمة المرور');
+    return;
+  }
+  try{
+    const r=await call('signup',{type:'brand',name:name,username:username,password:password});
+    S.tab='in';
+    showLogin(r.msg || 'تم إنشاء البراند بنجاح. سجّل الدخول الآن.');
+  }catch(e){
+    toast(e.message);
+  }
 }
 function logout(){S.token=null;S.user=null;sessionStorage.removeItem('optiva');clearInterval(S.t1);clearInterval(S.t2);$('logo').src=LOGO0;showLogin()}
 function startLoops(){clearInterval(S.t1);clearInterval(S.t2);
