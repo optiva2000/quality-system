@@ -80,12 +80,27 @@ async function showLogin(msg){
   $('who').innerHTML='';$('floats').innerHTML='';
   try{S.pub=await call('publicInfo')}catch(e){toast(e.message)}
   const si=S.tab==='in';
+  
+  // فحص لو فيه تذكرني محفوظ مسبقاً
+  const savedUser = localStorage.getItem('optiva_remember_user') || '';
+  
   $('app').innerHTML=`<div class="card" style="max-width:440px;margin:24px auto">
     <div class="tabs"><button class="${si?'on':''}" onclick="S.tab='in';showLogin()">تسجيل الدخول</button><button class="${si?'':'on'}" onclick="S.tab='up';showLogin()">حساب جديد (مدير براند)</button></div>
     ${msg?`<p class="ok">${esc(msg)}</p>`:''}
-    ${si?`<label>اسم المستخدم</label><input id="lu" class="in" autocomplete="username">
-      <label>كلمة المرور</label><input id="lp" type="password" class="in" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="btn gold full" onclick="doLogin()">دخول</button><p class="muted">يتعرف النظام على نوع حسابك تلقائياً.</p>`
+    ${si?`<label>اسم المستخدم</label><input id="lu" class="in" autocomplete="username" value="${esc(savedUser)}">
+      
+      <label>كلمة المرور</label>
+      <div style="position:relative; display:flex; align-items:center;">
+        <input id="lp" type="password" class="in" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" style="margin:0; flex:1;">
+        <button type="button" onclick="togglePassword()" style="position:absolute; left:10px; background:none; border:none; cursor:pointer; font-size:.85rem; color:var(--muted);">👁️ عرض</button>
+      </div>
+      
+      <div style="margin: 10px 0; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="rememberMe" ${savedUser ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: var(--gold);">
+        <label for="rememberMe" style="font-size: 0.85rem; cursor: pointer; margin:0;">تذكرني (Keep me logged in)</label>
+      </div>
+
+      <button class="btn gold full" onclick="doLogin()">دخول</button><p class="muted" style="margin-top:8px;">يتعرف النظام على نوع حسابك تلقائياً.</p>`
     :`<p class="muted">التسجيل هنا لمديري البراندات فقط. حسابات فريق الجودة ومسؤولي الفروع ينشئها المدير العام من لوحته.</p>
       <label>اسم البراند</label><input id="sn" class="in">
       <label>اسم المستخدم (حساب المدير العام)</label><input id="su" class="in" autocomplete="username" placeholder="حروف إنجليزية وأرقام">
@@ -93,13 +108,36 @@ async function showLogin(msg){
       <button class="btn gold full" onclick="doSignup()">إنشاء حساب البراند</button>`}
   </div>`;
 }
-async function doSignup(){
-  try{const r=await call('signup',{type:'brand',name:val('sn').trim(),username:val('su').trim(),password:val('sp')});
-    S.tab='in';showLogin(r.msg)}catch(e){toast(e.message)}
+
+// دالة إظهار وإخفاء الباسورد
+function togglePassword() {
+  const pwdInput = $('lp');
+  if (pwdInput.type === 'password') {
+    pwdInput.type = 'text';
+  } else {
+    pwdInput.type = 'password';
+  }
 }
 async function doLogin(){
-  try{const r=await call('login',{username:val('lu').trim(),password:val('lp')});
-    S.token=r.token;S.user=r.user;sessionStorage.setItem('optiva',JSON.stringify(r));await refresh(true);startLoops()}catch(e){toast(e.message)}
+  try{
+    const usernameVal = val('lu').trim();
+    const rememberChecked = $('rememberMe') ? $('rememberMe').checked : false;
+
+    const r = await call('login',{username: usernameVal, password: val('lp')});
+    S.token = r.token; 
+    S.user = r.user; 
+    sessionStorage.setItem('optiva', JSON.stringify(r));
+
+    // حفظ أو مسح اليوزر حسب اختيار تذكرني
+    if(rememberChecked) {
+      localStorage.setItem('optiva_remember_user', usernameVal);
+    } else {
+      localStorage.removeItem('optiva_remember_user');
+    }
+
+    await refresh(true); 
+    startLoops();
+  }catch(e){toast(e.message)}
 }
 function logout(){S.token=null;S.user=null;sessionStorage.removeItem('optiva');clearInterval(S.t1);clearInterval(S.t2);$('logo').src=LOGO0;showLogin()}
 function startLoops(){clearInterval(S.t1);clearInterval(S.t2);
