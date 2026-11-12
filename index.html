@@ -1,127 +1,37 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Optiva — Restaurant Quality Management</title>
-  <style>
-    :root { --primary: #C5A059; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
-    header { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-size: 1.25rem; font-weight: bold; color: var(--primary); }
-    main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; }
-    h2 { margin-bottom: 1rem; font-size: 1.2rem; color: var(--primary); }
-    .form-group { margin-bottom: 1rem; }
-    label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; }
-    input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border); background: #0f172a; color: var(--text); margin-bottom: 0.5rem; }
-    button { background: var(--primary); color: #000; font-weight: bold; padding: 0.75rem 1.5rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: opacity 0.2s; }
-    button:hover { opacity: 0.9; }
-    button.danger { background: #ef4444; color: #fff; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { padding: 0.75rem; text-align: right; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-    th { color: var(--primary); }
-    .hidden { display: none !important; }
-    .flex { display: flex; gap: 1rem; align-items: center; }
-    .error { color: #ef4444; margin-top: 0.5rem; font-size: 0.85rem; }
-    .success { color: #10b981; margin-top: 0.5rem; font-size: 0.85rem; }
-  </style>
-</head>
-<body>
-
-  <header>
-    <div class="logo">Optiva | أوبتيفا لسلامة الغذاء</div>
-    <div id="userHeader" class="hidden">
-      <span id="userNameRole" style="margin-left: 1rem; font-size: 0.9rem;"></span>
-      <button onclick="logout()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">تسجيل خروج</button>
-    </div>
-  </header>
-
-  <main>
-    <!-- شاشة تسجيل الدخول -->
-    <section id="loginSection" class="card" style="max-width: 400px; margin: 4rem auto;">
-      <h2>تسجيل الدخول إلى Optiva</h2>
-      <div class="form-group">
-        <label>اسم المستخدم</label>
-        <input type="text" id="loginUser" placeholder="أدخل اسم المستخدم">
-      </div>
-      <div class="form-group">
-        <label>كلمة المرور</label>
-        <input type="password" id="loginPass" placeholder="أدخل كلمة المرور">
-      </div>
-      <button onclick="doLogin()" style="width: 100%;">دخول</button>
-      <div id="loginError" class="error"></div>
-    </section>
-
-    <!-- لوحة التحكم العامة -->
-    <section id="dashboardSection" class="hidden">
-      <div id="dashboardContent"></div>
-    </section>
-  </main>
-
-  <script>
-    // حط رابط الـ Web App الخاص بك هنا بعد الـ Deploy
-    const API_URL = "https://script.google.com/macros/s/AKfycbz.../exec"; 
-    
-    let authToken = localStorage.getItem('optiva_token') || '';
-    let currentUser = JSON.parse(localStorage.getItem('optiva_user') || 'null');
-
-    if (authToken && currentUser) {
-      showDashboard();
-    }
-
-    async function apiCall(action, p = {}) {
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ token: authToken, action, p })
-        });
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        return data;
-      } catch (err) {
-        alert('خطأ: ' + err.message);
-        throw err;
-      }
-    }
-
-    async function doLogin() {
-      const username = document.getElementById('loginUser').value.trim();
-      const password = document.getElementById('loginPass').value.trim();
-      const errEl = document.getElementById('loginError');
-      errEl.innerText = '';
-
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'login', p: { username, password } })
-        });
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-
-        authToken = data.token;
-        currentUser = data.user;
-        localStorage.setItem('optiva_token', authToken);
-        localStorage.setItem('optiva_user', JSON.stringify(currentUser));
-        
-        showDashboard();
-      } catch (err) {
-        errEl.innerText = err.message;
-      }
-    }
-
-    function logout() {
-      localStorage.clear();
-      authToken = '';
-      currentUser = null;
-      document.getElementById('dashboardSection').classList.add('hidden');
-      document.getElementById('loginSection').classList.remove('hidden');
-      document.getElementById('userHeader').classList.add('hidden');
-    }
-
-    async function showDashboard() {
-      document.getElementById('loginSection').classList.add('hidden');
-      document.getElementById('dashboardSection').classList.remove('hidden');
-      document.getElementById('userHeader').classList.remove('hidden');
-      document
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optiva — Optimize Value</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1A1A1A;--gold:#C5A059;--bg:#FAFAFA;--line:#E6E1D6;--muted:#777}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Cairo,Montserrat,sans-serif;line-height:1.6}
+header{background:var(--ink);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:4px solid var(--gold)}
+header img{height:40px;width:auto}
+.mark{font:800 1.1rem Montserrat,sans-serif;color:var(--gold);letter-spacing:.08em;line-height:1}
+.tag{font:500 .72rem Montserrat,sans-serif;color:#ccc}
+#who{margin-inline-start:auto;display:flex;align-items:center;gap:10px;font-size:.85rem;flex-wrap:wrap}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+.g{display:grid;gap:12px;margin-bottom:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.r>.in{flex:1;min-width:130px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
+.mb{margin-bottom:12px}.muted{color:var(--muted);font-size:.8rem}.ok{color:#1d7a3e;font-size:.8rem}.bad{color:#b3261e;font-size:.8rem}
+h2{font-size:1.15rem;margin:0 0 12px}h3{font-size:1rem;margin:0 0 8px}
+.num{font:800 2rem Montserrat,sans-serif}
+.in{display:block;width:100%;border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 10px;font:inherit;margin-bottom:8px}
+.btn{background:var(--ink);color:#fff;border:0;padding:8px 16px;border-radius:6px;font:600 .9rem Cairo,sans-serif;cursor:pointer}
+.btn:hover{background:#000}.btn.gold{background:var(--gold);color:var(--ink)}.btn.gold:hover{background:#b48b45}.btn.sm{padding:4px 10px;font-size:.8rem}.btn.full{width:100%}
+.btn:focus-visible,.in:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.chip{display:inline-block;font-size:.75rem;padding:1px 9px;border-radius:99px;border:1px solid var(--line);margin:0 0 4px 4px}
+.tabs{display:flex;margin-bottom:14px;border-bottom:2px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:8px;font:600 .95rem Cairo,sans-serif;cursor:pointer;color:var(--muted)}
+.tabs button.on{color:var(--ink);border-bottom:3px solid var(--gold);margin-bottom:-2px}
+.row{border-bottom:1px solid var(--line);padding:8px 0;font-size:.88rem}.row:last-child{border:0}
+.fab-bot{position:fixed;bottom:16px;right:16px;width:64px;height:64px;border-radius:50%;border:4px solid var(--gold);background:#fff;padding:0;overflow:hidden;cursor:pointer;box-shadow:0 4px 14px #0003;z-index:40}
+.fab-bot img{width:100%;height:100%;object-fit:cover}
+.fab-sup{position:fixed;bottom:16px;left:16px;z-index:40;box-shadow:0 4px 14px #0003}
+.pop{position:fixed;width:min(22
